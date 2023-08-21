@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://unpkg.com/@antv/l7"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            overflow: hidden;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .search {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 999;
+            width: 200px;
+            height: 30px;
+        }
+
+        #myInput {
+            width: 180px;
+            height: 30px;
+            border: 0;
+            outline: none;
+            border-radius: 4px;
+            box-shadow: 0 0 3px rgba(0, 0, 0, .5);
+            text-indent: 12px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+
+    <script src="./data.js"></script>
+
+    <script>
+        // 引入相关功能
+        const { Scene, CanvasLayer, GaodeMap, Source } = L7;
+
+        let x = 0;
+        function draw(option) {
+            const { size, ctx, mapService } = option;
+            const [width, height] = size;
+
+            const radius = 30,
+                rectWidth = radius * 2;
+            const rectHeight = rectWidth;
+
+            ctx.clearRect(0, 0, width, height);
+
+            ctx.fillStyle = 'rgb(95, 99, 104,0.8)';
+            ctx.font = 'normal small-caps bold 14px arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            //颜色渲染函数
+            const pointColor = (points) => {
+                points.forEach(point => {
+                    if (Number(point.level) < 40) {
+                        point.color = 'rgba(127,255,0, 0.6)'
+                    } else if (Number(point.level) < 60 && Number(point.level) > 40) {
+                        point.color = 'rgba(255,165,0, 0.6)'
+                    } else if (Number(point.level) < 80 && Number(point.level) > 60) {
+                        point.color = 'rgba(255,140,0, 0.6)'
+                    } else {
+                        point.color = 'rgba(220,20,60,0.6)'
+                    }
+                });
+            }
+
+            points.map(point => {
+                const pixelCenter = mapService.lngLatToContainer([point.lng, point.lat]);
+                pixelCenter.x *= window.devicePixelRatio;
+                pixelCenter.y *= window.devicePixelRatio;
+                const rectStartX = pixelCenter.x - radius;
+                const rectStartY = pixelCenter.y - radius;
+
+                ctx.save();
+
+                ctx.fillText(point.level + '%', pixelCenter.x, pixelCenter.y);
+
+                ctx.beginPath();
+                ctx.arc(pixelCenter.x, pixelCenter.y, radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(100,100,100,0.2)';
+                ctx.closePath();
+                ctx.fill();
+                ctx.clip();
+
+                ctx.beginPath();
+                //小圆圈颜色
+                pointColor(points)
+                ctx.fillStyle = point.color;
+                ctx.moveTo(rectStartX, pixelCenter.y);
+
+                const waterheight = rectStartY + ((100 - point.level) / 100) * rectHeight;
+                for (let i = 0; i <= rectWidth; i += 10) {
+                    ctx.lineTo(
+                        rectStartX + i,
+                        waterheight + Math.sin(Math.PI * 2 * (i / rectWidth) + x) * 3 + 1
+                    );
+                }
+
+                ctx.lineTo(pixelCenter.x + radius, pixelCenter.y + radius);
+                ctx.lineTo(rectStartX, pixelCenter.y + radius);
+                ctx.lineTo(rectStartX, pixelCenter.y);
+                ctx.closePath();
+
+                ctx.fill();
+
+                ctx.restore();
+                return '';
+            });
+            return '';
+        }
+
+        const scene = new Scene({
+            id: 'map',
+            map: new GaodeMap({
+                style: 'light',
+                center: [114.3187, 30.566],
+                zoom: 11
+            })
+        });
+        scene.on('loaded', () => {
+            const layer = new CanvasLayer({})
+                .style({
+                    zIndex: 10,
+                    update: 'always',
+                    drawingOnCanvas: draw
+                })
+                .animate({
+                    enable: true
+                });
+            scene.addLayer(layer);
+
+            setInterval(() => {
+                x += 0.1;
+                layer.style({
+                    drawingOnCanvas: draw
+                });
+                scene.render();
+                return '';
+            }, 30);
+            return '';
+        });
+
+    </script>
+</body>
+
+</html>
