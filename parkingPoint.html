@@ -45,9 +45,7 @@
 
 <body>
     <div id="map"></div>
-
     <script src="./data.js"></script>
-
     <script>
         // 引入相关功能
         const { Scene, CanvasLayer, GaodeMap, Source } = L7;
@@ -63,7 +61,7 @@
 
             ctx.clearRect(0, 0, width, height);
 
-            ctx.fillStyle = 'rgb(220, 220, 220,0.8)';
+            ctx.fillStyle = 'rgb(209, 215, 222,0.8)';
             ctx.font = 'normal small-caps bold 14px arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
@@ -96,7 +94,7 @@
 
                 ctx.beginPath();
                 ctx.arc(pixelCenter.x, pixelCenter.y, radius, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(100,100,100,0.2)';
+                ctx.fillStyle = 'rgba(200,200,200,0.2)';
                 ctx.closePath();
                 ctx.fill();
                 ctx.clip();
